@@ -1,0 +1,24 @@
+{
+  "name": "seamless-template",
+  "version": "0.1.0",
+  "description": "A Polkadot Dapp built with kit-dot",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "front"
+  ],
+  "scripts": {
+    "install:all": "npm install",
+    "build:all": "npm run build --workspaces",
+    "lint:all": "npm run lint --workspaces",
+    "test:all": "npm run test --workspaces"
+  },
+  "devDependencies": {
+    "@types/node": "^22.16.2",
+    "typescript": "^5.6.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}
