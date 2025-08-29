@@ -5,10 +5,14 @@
 **✅ CLI Responsibilities:**
 - Project structure creation and enforcement
 - Template copying and configuration injection
+- Remote template fetching with degit
+- Template registry management and selection logic
 - Monorepo integration and coordination
 - Cross-component communication interfaces
 - Environment configuration management
 - Development tooling integration
+- Template categorization and filtering
+- Documentation URL integration
 
 **❌ CLI Non-Responsibilities:**
 - Framework-specific code generation
@@ -16,6 +20,7 @@
 - Dependency version management
 - Application business logic
 - Template-specific patterns and conventions
+- Template content maintenance (handled by template repositories)
 
 ## Template Development Guidelines
 

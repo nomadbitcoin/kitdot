@@ -28,3 +28,13 @@ The Kit-Dot CLI implements a **template-agnostic technology management approach*
 - Styling solution
 - Build tooling
 - Polkadot/Substrate integration library
+
+**CLI Responsibility Boundaries:**
+- ✅ Project structure creation and enforcement
+- ✅ Template copying and configuration injection
+- ✅ Remote template fetching using degit
+- ✅ Cross-component communication interfaces
+- ✅ Environment configuration management
+- ❌ Framework-specific code generation
+- ❌ Build process execution and optimization
+- ❌ Template-specific patterns and conventions

@@ -3,12 +3,13 @@ import chalk from 'chalk';
 import ora from 'ora';
 import path from 'path';
 import fs from 'fs-extra';
-import { ProjectConfig, ProjectType, ProjectFeatures } from '../types.js';
+import { ProjectConfig, ProjectType, ProjectFeatures, TemplateConfig } from '../types.js';
 import { createProjectStructure } from '../utils/project-structure.js';
 import { setupContracts } from '../utils/setup-contracts.js';
 import { setupFrontend } from '../utils/setup-frontend.js';
 import { setupCloudFunctions } from '../utils/setup-cloud-functions.js';
 import { setupDocumentation } from '../utils/setup-docs.js';
+import { getTemplatesByCategory, getAllTemplates, getTemplate } from '../templates/registry.js';
 
 export async function initCommand(projectName?: string, options?: { dir?: string }) {
   console.log(chalk.blue.bold('🚀 Welcome to kit-dot - Polkadot Dapp Toolkit'));
@@ -75,11 +76,46 @@ async function gatherProjectInfo(projectName?: string, targetDir?: string): Prom
     documentation: true
   };
 
+  // Template selection for frontend projects
+  let template: TemplateConfig | undefined;
+  
+  if (features.frontend) {
+    const availableTemplates = type === 'frontend' 
+      ? getTemplatesByCategory('frontend').concat(getTemplatesByCategory('fullstack'))
+      : getTemplatesByCategory('fullstack');
+
+    if (availableTemplates.length > 1) {
+      const templateQuestion = {
+        type: 'list' as const,
+        name: 'selectedTemplate',
+        message: 'Choose a frontend template:',
+        choices: availableTemplates.map(template => ({
+          name: `${template.framework} - ${template.description}`,
+          value: template.key
+        }))
+      };
+
+      const templateAnswer = await inquirer.prompt(templateQuestion);
+      
+      template = {
+        name: templateAnswer.selectedTemplate,
+        source: availableTemplates.find(t => t.key === templateAnswer.selectedTemplate)!.source
+      };
+    } else if (availableTemplates.length === 1) {
+      // Use the only available template
+      template = {
+        name: availableTemplates[0].key,
+        source: availableTemplates[0].source
+      };
+    }
+  }
+
   return {
     name,
     type,
     directory,
-    features
+    features,
+    template
   };
 }
 
@@ -151,6 +187,16 @@ function displaySuccessMessage(config: ProjectConfig) {
   
   if (config.features.contracts) {
     console.log(chalk.yellow('  cd contracts/develop && forge build'));
+  }
+
+  // Show template documentation if available
+  if (config.template) {
+    const template = getTemplate(config.template.name);
+    if (template?.documentationUrl) {
+      console.log('\n📚 Template Documentation:');
+      console.log(chalk.cyan(`  ${template.documentationUrl}`));
+      console.log(chalk.gray('  ↳ Complete guide and examples for this template'));
+    }
   }
 
   console.log('\n📖 For more information, check the documentation in the docs/ folder');

@@ -16,7 +16,12 @@ The Kit-Dot CLI implements a **template-driven frontend architecture** that supp
 - Future templates can introduce different frameworks (Vue, Svelte, Angular) without CLI changes
 - Template-specific documentation lives within each template directory
 
-**Current Template: `basic-polkadot-dapp`**
-- Framework: React + TypeScript + Vite + Tailwind
-- Polkadot Integration: Wagmi for EVM compatibility
-- This is ONE template among future many
+**Available Templates:**
+- `basic-polkadot-dapp`: React + TypeScript + Vite + Tailwind (local, fullstack category)
+- `social-login-web3-react`: React + Web3Auth social login (remote, frontend category)
+- Future templates: Vue, Svelte, Angular implementations
+
+**Template Selection Logic:**
+- **Frontend-only projects**: Show both frontend and fullstack category templates
+- **Fullstack projects**: Show only fullstack category templates
+- **Backend-only projects**: No frontend templates shown
