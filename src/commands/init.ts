@@ -8,10 +8,11 @@ import { setupContracts } from '../utils/setup-contracts.js';
 import { setupFrontend } from '../utils/setup-frontend.js';
 import { setupDocumentation } from '../utils/setup-docs.js';
 import { getTemplatesByCategory, getTemplate } from '../templates/registry.js';
+import { displayHomeScreen } from '../utils/homeScreen.js';
 
 export async function initCommand(projectName?: string, options?: { dir?: string }) {
-  console.log(chalk.blue.bold('🚀 Welcome to kit-dot - Polkadot Dapp Toolkit'));
-  console.log(chalk.gray('This tool will help you set up a project to build Dapps on Polkadot Cloud\n'));
+  // Display the new styled home screen
+  await displayHomeScreen();
 
   try {
     const config = await gatherProjectInfo(projectName, options?.dir);
@@ -24,11 +25,33 @@ export async function initCommand(projectName?: string, options?: { dir?: string
 }
 
 async function gatherProjectInfo(projectName?: string, targetDir?: string): Promise<ProjectConfig> {
-  const questions: any[] = [];
+  const baseQuestions = [
+    {
+      type: 'list' as const,
+      name: 'projectType',
+      message: 'What type of project do you want to create?',
+      choices: [
+        {
+          name: '🌟 Full-stack Dapp (Frontend + Smart Contracts)',
+          value: 'fullstack'
+        },
+        {
+          name: '🎨 Frontend only (React app for Polkadot)',
+          value: 'frontend'
+        },
+        {
+          name: '⚙️  Backend only (Smart Contracts only)',
+          value: 'backend'
+        }
+      ]
+    }
+  ];
 
+  let answers: { projectName?: string; projectType?: string; selectedTemplate?: string };
+  
   if (!projectName) {
-    questions.push({
-      type: 'input',
+    const nameQuestion = {
+      type: 'input' as const,
       name: 'projectName',
       message: 'What is your project name?',
       default: 'my-polkadot-dapp',
@@ -38,33 +61,15 @@ async function gatherProjectInfo(projectName?: string, targetDir?: string): Prom
         }
         return true;
       }
-    });
+    };
+    
+    answers = await inquirer.prompt([nameQuestion, ...baseQuestions]);
+  } else {
+    answers = await inquirer.prompt(baseQuestions);
   }
 
-  questions.push({
-    type: 'list',
-    name: 'projectType',
-    message: 'What type of project do you want to create?',
-    choices: [
-      {
-        name: '🌟 Full-stack Dapp (Frontend + Smart Contracts)',
-        value: 'fullstack'
-      },
-      {
-        name: '🎨 Frontend only (React app for Polkadot)',
-        value: 'frontend'
-      },
-      {
-        name: '⚙️  Backend only (Smart Contracts only)',
-        value: 'backend'
-      }
-    ]
-  });
-
-  const answers = await inquirer.prompt(questions);
-
-  const name = projectName || answers.projectName;
-  const type = answers.projectType as ProjectType;
+  const name = projectName || answers.projectName || 'my-polkadot-dapp';
+  const type = (answers.projectType || 'fullstack') as ProjectType;
   const directory = targetDir || path.join(process.cwd(), name);
 
   // Template selection first
@@ -99,7 +104,7 @@ async function gatherProjectInfo(projectName?: string, targetDir?: string): Prom
         }))
       };
 
-      const templateAnswer = await inquirer.prompt(templateQuestion);
+      const templateAnswer = await inquirer.prompt([templateQuestion]);
       
       template = {
         name: templateAnswer.selectedTemplate,

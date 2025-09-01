@@ -48,5 +48,3 @@ function determineFrontendDirectory(config: ProjectConfig, template: { category?
   // Fallback to project root
   return config.directory;
 }
-
-

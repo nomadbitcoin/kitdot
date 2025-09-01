@@ -5,7 +5,7 @@ import ora, { Ora } from 'ora';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { spawn } from 'child_process';
-import { TemplateDefinition, TemplateSource, ProjectConfig, TemplateCommand } from '../types.js';
+import { TemplateDefinition, TemplateSource, ProjectConfig, TemplateCommand, NextStepInstruction } from '../types.js';
 
 /**
  * Template Loader - Handles loading templates from local and remote sources
@@ -144,7 +144,6 @@ export class TemplateLoader {
     });
   }
 
-
   /**
    * Prompt user for consent to run optional setup commands
    */
@@ -156,7 +155,7 @@ export class TemplateLoader {
     console.log(chalk.gray(optionalSetup.description || 'Additional setup commands are available for this template.'));
     
     console.log('\nCommands that will be executed:');
-    optionalSetup.commands.forEach((command: any, index: number) => {
+    optionalSetup.commands.forEach((command: TemplateCommand, index: number) => {
       const workingDir = command.workingDirectory ? ` (in ${command.workingDirectory})` : '';
       console.log(chalk.yellow(`  ${index + 1}. ${command.command}${workingDir}`));
       if (command.description) {
@@ -221,7 +220,7 @@ export class TemplateLoader {
     console.log(chalk.blue(`\n📋 ${nextSteps.title}`));
     console.log(chalk.gray('Follow these steps to get started:\n'));
 
-    nextSteps.instructions.forEach((instruction: any, index: number) => {
+    nextSteps.instructions.forEach((instruction: NextStepInstruction, index: number) => {
       console.log(chalk.blue(`${index + 1}. ${instruction.title}`));
       console.log(chalk.gray(`   ${instruction.description}`));
       
