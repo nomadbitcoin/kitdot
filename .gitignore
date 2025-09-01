@@ -190,6 +190,10 @@ test-results/
 playwright-report/
 test-results.xml
 
+# Test folders to exclude
+testea*
+*aaa*
+
 # Package manager files
 yarn.lock
 package-lock.json
@@ -235,3 +239,5 @@ api-keys.json
 # Misc
 *.tgz
 *.tar.gz
+
+TODO

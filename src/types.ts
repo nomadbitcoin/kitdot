@@ -17,7 +17,6 @@ export type ProjectType = 'fullstack' | 'frontend' | 'backend';
 export interface ProjectFeatures {
   contracts: boolean;
   frontend: boolean;
-  cloudFunctions: boolean;
   documentation: boolean;
 }
 
@@ -58,6 +57,33 @@ export interface TemplateDefinition {
   source: TemplateSource;
   features: string[];
   documentationUrl?: string; // Optional documentation URL
+  optionalSetup?: OptionalSetupConfig; // Optional setup commands requiring user consent
+  nextSteps?: NextStepsConfig; // Dynamic instructions for getting started
+}
+
+export interface OptionalSetupConfig {
+  commands: TemplateCommand[];
+  description?: string; // Description of what these commands do
+}
+
+export interface NextStepsConfig {
+  title: string; // Title for the next steps section
+  instructions: NextStepInstruction[]; // List of step-by-step instructions
+  documentationUrl?: string; // Optional link to detailed documentation
+}
+
+export interface NextStepInstruction {
+  title: string; // Step title (e.g., "Install Dependencies")
+  commands: string[]; // Commands to run for this step
+  description: string; // Description of what this step accomplishes
+  workingDirectory?: string; // Optional directory to run commands in
+}
+
+export interface TemplateCommand {
+  command: string; // The command to run (e.g., "npm run generate")
+  workingDirectory?: string; // Optional subdirectory to run command in (relative to template root)
+  description?: string; // Optional description of what this command does
+  timeout?: number; // Optional timeout in milliseconds (default: 60000)
 }
 
 export interface DocsConfig {

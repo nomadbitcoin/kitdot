@@ -25,9 +25,10 @@ kit-dot init my-project
 ```
 
 - Generates standardized project structure for Polkadot Cloud
-- Includes frontend, contracts, and cloud-functions templates
+- Includes frontend and contracts templates
 - TypeScript configuration for all components
 - Basic project scaffolding and dependencies setup
+- Supports both monorepo and single repo project structures
 
 ## Coming Soon Features
 
@@ -59,31 +60,39 @@ kit-dot init my-project
 
 ## Project Generated Structure
 
+## Fullstack Project Structure
 ```
 my-polkadot-dapp/
-├── contracts/
-│   ├── develop/          # Foundry development
-│   │   ├── src/          # Solidity contracts
-│   │   ├── test/         # Contract tests
-│   │   └── foundry.toml  # Configuration
-│   └── deploy/           # Hardhat deployment
-│       ├── scripts/      # Deploy scripts
-│       └── hardhat.config.ts
+├── contracts/            # Smart contract development (flat structure)
+│   ├── src/              # Solidity contracts
+│   ├── test/             # Contract tests
+│   ├── scripts/          # Deployment scripts
+│   ├── hardhat.config.ts # Hardhat configuration
+│   └── package.json      # Contract dependencies
 ├── front/                # React frontend
 │   ├── src/
 │   │   ├── components/   # UI components
-│   │   ├── wagmi-config.ts # Polkadot Cloud config
 │   │   └── generated.ts  # Contract types
-│   └── package.json
-├── cloud-functions/      # Acurast Functions
-│   ├── src/
-│   │   ├── handlers/     # Decentralized API handlers
-│   │   └── services/     # Business logic
-│   └── acurast.config.ts # Parachain deployment config
+│   ├── package.json      # Frontend dependencies
+│   └── tsconfig.json     # TypeScript config
 ├── docs/                 # mdbook docs
 │   ├── src/
 │   └── book.toml
 └── package.json          # Monorepo config
+```
+
+## Frontend-Only Project Structure
+```
+my-frontend-dapp/
+├── src/                  # Frontend source code
+│   ├── components/       # UI components
+│   ├── App.tsx           # Main application
+│   └── main.tsx          # Application entry
+├── public/               # Static assets
+├── package.json          # Project dependencies
+├── tsconfig.json         # TypeScript configuration
+├── vite.config.ts        # Build configuration
+└── README.md             # Project documentation
 ```
 
 ## Project Templates
@@ -92,24 +101,18 @@ Kit-Dot generates complete project structures with the following components:
 
 ### Smart Contracts
 
-- Foundry development environment with testing framework
-- Hardhat deployment scripts for Polkadot Cloud networks
-- Access to 130+ audited contracts from thirdweb library
-- Upgradeable proxy patterns and OpenZeppelin standards
+- Hardhat development environment with testing framework
+- Deployment scripts for Polkadot Cloud networks
+- Official Parity templates integration
+- Simplified flat directory structure
 
 ### Frontend Applications
 
 - React + TypeScript with Polkadot Cloud integration
-- Wagmi hooks for EVM compatibility
+- Official Parity template integration
 - Tailwind CSS for styling
-- Automatic wallet generation and onboarding flows
-
-### Decentralized Cloud Functions
-
-- Acurast parachain function templates
-- TypeScript development environment
-- Contract event monitoring and indexing
-- Fully decentralized execution environment
+- Templates loaded as-is without forced modifications
+- Single repo mode for frontend-only projects
 
 ### Documentation
 
@@ -151,19 +154,17 @@ Kit-Dot generates complete project structures with the following components:
 ### Development
 
 - **TypeScript**: Type safety across all components
-- **Foundry**: Smart contract development and testing
-- **Hardhat**: Contract deployment and verification
+- **Hardhat**: Smart contract development, testing and deployment
 - **React**: Frontend user interfaces
 - **Wagmi**: Blockchain interaction hooks
 - **Vite**: Fast development server and builds
 
-### Decentralized Infrastructure
+### Infrastructure
 
-- **Acurast Parachain**: Decentralized cloud function execution
-- **Crust Network**: IPFS hosting and storage
-- **Apillon SDK**: Polkadot Cloud services integration
+- **Polkadot Cloud**: Primary deployment target
+- **Official Templates**: Parity-maintained project templates  
 - **mdbook**: Documentation generation
-- **No Web2 Dependencies**: Fully decentralized stack
+- **TypeScript**: End-to-end type safety
 
 ## Installation
 
@@ -208,37 +209,23 @@ kit-dot init my-dapp          # Generate complete project structure
 
 ### 2. Smart Contract Development
 
-- Access to 130+ audited contracts from thirdweb
-- Foundry-based development environment
+- Official Parity templates
+- Hardhat-based development environment
 - Deployment to Polkadot Cloud networks
 
 ### 3. Frontend Development
 
 - React + TypeScript templates
-- Automatic wallet generation and onboarding
-- Polkadot Cloud integration
-
-### 4. Decentralized Cloud Functions
-
-- Acurast parachain deployment
-- Event monitoring and indexing
-- Fully decentralized backend services
-
-### 5. Hosting and Storage
-
-- IPFS hosting via Crust Network
-- Decentralized storage solutions
-- Apillon SDK integration
+- Official Parity template integration
+- Single repo and monorepo support
 
 ## Configuration
 
 ### Environment Variables
 
 ```bash
-# .env
-APOLLON_API_KEY=your_api_key
-APOLLON_API_SECRET=your_secret
-APOLLON_WEBSITE_UUID=your_uuid
+# .env (for future features)
+POLKADOT_CLOUD_API_KEY=your_api_key
 ```
 
 ### Project Structure
@@ -246,10 +233,9 @@ APOLLON_WEBSITE_UUID=your_uuid
 Generated projects include pre-configured:
 
 - Polkadot Cloud network connections
-- Acurast function deployment settings
-- IPFS hosting configuration via Crust
 - Smart contract deployment scripts
-- Frontend wallet integration
+- Frontend template integration
+- TypeScript configuration
 
 ## Contributing
 
@@ -275,17 +261,16 @@ npm run lint:fix              # Fix formatting
 
 Kit-Dot provides several templates:
 
-- `basic-polkadot-dapp/`: Full-stack decentralized application
-- `contract-only/`: Smart contract development (coming soon)
-- `frontend-only/`: Frontend application (coming soon)
-- Custom templates for specific use cases
+- `basic-polkadot-dapp/`: Official Parity React + Solidity + Hardhat template
+- `social-login-web3-react/`: React with Web3Auth social login integration
+- Additional templates for specific use cases
 
-### Thirdweb Contract Integration
+### Official Template Integration
 
-- 130+ audited smart contracts available
-- NFT, token, marketplace, and governance contracts
-- One-command deployment and customization
-- Battle-tested security patterns
+- Uses official Parity create-polkadot-dapp templates
+- React + Solidity + Hardhat development stack
+- Templates loaded as-is without modifications
+- Authentic Polkadot development patterns
 
 ## Requirements
 

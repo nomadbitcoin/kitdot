@@ -1,0 +1,20 @@
+schema: 1
+story: 'template-validation-system'
+gate: CONCERNS
+status_reason: 'CI workflow has potential linting failure and comprehensive CLI tests may have expectations mismatch.'
+reviewer: 'Quinn'
+updated: '2025-08-30T23:04:00Z'
+top_issues:
+  - id: 'CI-001'
+    severity: medium
+    finding: 'CI workflow includes npm run lint step but project has ESLint config issues'
+    suggested_action: 'Fix ESLint configuration or remove lint step from CI until resolved'
+  - id: 'TEST-001'
+    severity: medium
+    finding: 'Comprehensive CLI tests have expectation mismatches for frontend template structure'
+    suggested_action: 'Update test expectations to match actual template structure or fix template output'
+  - id: 'MNT-001'
+    severity: low
+    finding: 'Template validation documentation could benefit from troubleshooting section'
+    suggested_action: 'Add common failure scenarios and solutions to documentation'
+waiver: { active: false }

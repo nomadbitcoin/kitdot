@@ -55,9 +55,6 @@ async function createDocumentationStructure(docsDir: string, config: ProjectConf
     await fs.ensureDir(path.join(srcDir, 'frontend'));
   }
   
-  if (config.features.cloudFunctions) {
-    await fs.ensureDir(path.join(srcDir, 'cloud-functions'));
-  }
 
   await fs.ensureDir(path.join(srcDir, 'deployment'));
   await fs.ensureDir(path.join(srcDir, 'guides'));
@@ -98,16 +95,6 @@ async function createSummary(docsDir: string, config: ProjectConfig): Promise<vo
 `;
   }
 
-  if (config.features.cloudFunctions) {
-    summary += `# Cloud Functions
-
-- [Overview](./cloud-functions/overview.md)
-- [API Handlers](./cloud-functions/api-handlers.md)
-- [Contract Integration](./cloud-functions/contract-integration.md)
-- [Deployment](./cloud-functions/deployment.md)
-
-`;
-  }
 
   summary += `# Deployment
 
@@ -140,7 +127,6 @@ ${config.name} is a decentralized application (Dapp) built for the Polkadot ecos
 
 ${config.features.contracts ? '- **Smart Contracts**: Upgradeable smart contracts using UUPS pattern with Foundry and Hardhat' : ''}
 ${config.features.frontend ? '- **Frontend**: Modern React application with Polkadot integration' : ''}
-${config.features.cloudFunctions ? '- **Cloud Functions**: Serverless backend functions for scalable API endpoints' : ''}
 - **Documentation**: Comprehensive documentation built with mdbook
 
 ## Architecture
@@ -158,10 +144,6 @@ ${config.features.frontend ? `
 - \`front/\` - React application with TypeScript and Tailwind CSS
 ` : ''}
 
-${config.features.cloudFunctions ? `
-### Cloud Functions
-- \`cloud-functions/\` - Serverless functions with AWS Lambda
-` : ''}
 
 ## Getting Started
 
@@ -195,7 +177,6 @@ Before you begin, make sure you have the following installed:
 - [Node.js](https://nodejs.org/) (v18 or higher)
 - [npm](https://www.npmjs.com/) (v8 or higher)
 ${config.features.contracts ? '- [Foundry](https://getfoundry.sh/) (for smart contract development)' : ''}
-${config.features.cloudFunctions ? '- [AWS CLI](https://aws.amazon.com/cli/) (for cloud function deployment)' : ''}
 
 ## Installation
 
@@ -247,21 +228,6 @@ ${config.features.contracts ? `
    \`\`\`
 ` : ''}
 
-${config.features.cloudFunctions ? `
-### Cloud Functions Development
-
-1. Navigate to the cloud functions directory:
-   \`\`\`bash
-   cd cloud-functions
-   \`\`\`
-
-2. Start the local development server:
-   \`\`\`bash
-   npm run dev
-   \`\`\`
-
-3. Test the API endpoints at [http://localhost:3001](http://localhost:3001).
-` : ''}
 
 ## Next Steps
 
@@ -269,7 +235,6 @@ ${config.features.cloudFunctions ? `
 - Follow the [Development Setup](./development-setup.md) instructions
 ${config.features.contracts ? '- Learn about [Smart Contract Development](../contracts/development.md)' : ''}
 ${config.features.frontend ? '- Explore [Frontend Development](../frontend/getting-started.md)' : ''}
-${config.features.cloudFunctions ? '- Dive into [Cloud Functions](../cloud-functions/overview.md)' : ''}
 `;
 
   await fs.writeFile(path.join(srcDir, 'getting-started/quick-start.md'), quickStart);
@@ -282,9 +247,6 @@ ${config.features.cloudFunctions ? '- Dive into [Cloud Functions](../cloud-funct
     await createFrontendDocs(srcDir);
   }
 
-  if (config.features.cloudFunctions) {
-    await createCloudFunctionsDocs(srcDir);
-  }
 }
 
 async function createContractsDocs(srcDir: string): Promise<void> {
@@ -351,41 +313,3 @@ See the [Getting Started Guide](./getting-started.md) to begin frontend developm
   await fs.writeFile(path.join(srcDir, 'frontend/overview.md'), frontendOverview);
 }
 
-async function createCloudFunctionsDocs(srcDir: string): Promise<void> {
-  const cloudFunctionsOverview = `# Cloud Functions Overview
-
-The cloud functions provide serverless backend functionality for the Dapp, handling API requests, contract interactions, and data processing.
-
-## Architecture
-
-- **AWS Lambda** - Serverless compute platform
-- **API Gateway** - HTTP API endpoints
-- **TypeScript** - Type-safe backend development
-- **Serverless Framework** - Infrastructure as code
-
-## Functions
-
-### API Handler
-- Health check endpoints
-- Data processing APIs
-- CORS-enabled responses
-
-### Contract Handler
-- Smart contract status monitoring
-- Contract interaction endpoints
-- Transaction management
-
-## Deployment
-
-Functions can be deployed to multiple environments:
-
-- **Development**: \`npm run deploy:dev\`
-- **Production**: \`npm run deploy:prod\`
-
-## Getting Started
-
-See the [API Handlers Guide](./api-handlers.md) to start building cloud functions.
-`;
-
-  await fs.writeFile(path.join(srcDir, 'cloud-functions/overview.md'), cloudFunctionsOverview);
-}

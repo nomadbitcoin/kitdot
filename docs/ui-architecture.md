@@ -261,12 +261,12 @@ interface RemoteTemplateSource {
 **Template Loading Workflow:**
 
 1. **User Selection**: CLI presents available templates based on project type and category
-2. **Source Resolution**: Determine if template is local (bundled) or remote (GitHub)
+2. **Template Validation**: Ensure selected template exists in registry
 3. **Remote Fetching**: Use degit to clone specific repository/directory/branch
-4. **Local Processing**: Copy local templates from bundled directory
-5. **File Customization**: Update package.json, component names, placeholder replacement
-6. **Configuration Injection**: Ensure required TypeScript and Wagmi configs exist
-7. **Cleanup**: Remove temporary files for remote templates
+4. **File Customization**: Update package.json, component names, placeholder replacement
+5. **Configuration Injection**: Ensure required TypeScript and Wagmi configs exist
+6. **Optional Setup**: Prompt user for optional post-install configuration
+7. **Cleanup**: Remove temporary files after processing
 
 **Degit Source Construction Rules:**
 - Repository path comes first: `owner/repo-name`
@@ -274,15 +274,15 @@ interface RemoteTemplateSource {
 - Branch specifier comes last: `#branch-name`
 - Final format: `owner/repo/path/to/template#branch-name`
 
-**Template Fallback Strategy:**
+**Template Loading Strategy:**
 ```typescript
-if (config.template) {
-  // Use new remote/local template system
-  await templateLoader.loadTemplate(template, targetDir, config);
-} else {
-  // Fallback to legacy bundled template
-  await copyFrontendTemplate(templateDir, targetDir, config);
+// Templates must be specified via registry - no fallback
+if (!config.template) {
+  throw new Error("Template must be specified for frontend setup");
 }
+
+const template = getTemplate(config.template.name);
+await templateLoader.loadTemplate(template, targetDir, config);
 ```
 
 **Error Handling:**

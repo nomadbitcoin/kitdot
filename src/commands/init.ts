@@ -2,14 +2,12 @@ import inquirer from 'inquirer';
 import chalk from 'chalk';
 import ora from 'ora';
 import path from 'path';
-import fs from 'fs-extra';
 import { ProjectConfig, ProjectType, ProjectFeatures, TemplateConfig } from '../types.js';
 import { createProjectStructure } from '../utils/project-structure.js';
 import { setupContracts } from '../utils/setup-contracts.js';
 import { setupFrontend } from '../utils/setup-frontend.js';
-import { setupCloudFunctions } from '../utils/setup-cloud-functions.js';
 import { setupDocumentation } from '../utils/setup-docs.js';
-import { getTemplatesByCategory, getAllTemplates, getTemplate } from '../templates/registry.js';
+import { getTemplatesByCategory, getTemplate } from '../templates/registry.js';
 
 export async function initCommand(projectName?: string, options?: { dir?: string }) {
   console.log(chalk.blue.bold('🚀 Welcome to kit-dot - Polkadot Dapp Toolkit'));
@@ -18,7 +16,7 @@ export async function initCommand(projectName?: string, options?: { dir?: string
   try {
     const config = await gatherProjectInfo(projectName, options?.dir);
     await createProject(config);
-    displaySuccessMessage(config);
+    // Template displays its own next steps - no additional CLI messages needed
   } catch (error) {
     console.error(chalk.red('❌ Error creating project:'), error);
     process.exit(1);
@@ -49,7 +47,7 @@ async function gatherProjectInfo(projectName?: string, targetDir?: string): Prom
     message: 'What type of project do you want to create?',
     choices: [
       {
-        name: '🌟 Full-stack Dapp (Frontend + Smart Contracts + Cloud Functions)',
+        name: '🌟 Full-stack Dapp (Frontend + Smart Contracts)',
         value: 'fullstack'
       },
       {
@@ -57,7 +55,7 @@ async function gatherProjectInfo(projectName?: string, targetDir?: string): Prom
         value: 'frontend'
       },
       {
-        name: '⚙️  Backend only (Smart Contracts + Cloud Functions)',
+        name: '⚙️  Backend only (Smart Contracts only)',
         value: 'backend'
       }
     ]
@@ -69,26 +67,32 @@ async function gatherProjectInfo(projectName?: string, targetDir?: string): Prom
   const type = answers.projectType as ProjectType;
   const directory = targetDir || path.join(process.cwd(), name);
 
-  const features: ProjectFeatures = {
-    contracts: type === 'fullstack' || type === 'backend',
-    frontend: type === 'fullstack' || type === 'frontend',
-    cloudFunctions: type === 'fullstack' || type === 'backend',
-    documentation: true
-  };
-
-  // Template selection for frontend projects
+  // Template selection first
   let template: TemplateConfig | undefined;
   
-  if (features.frontend) {
-    const availableTemplates = type === 'frontend' 
-      ? getTemplatesByCategory('frontend').concat(getTemplatesByCategory('fullstack'))
-      : getTemplatesByCategory('fullstack');
+  if (type === 'fullstack' || type === 'frontend') {
+    let availableTemplates;
+    let messageText;
+
+    if (type === 'frontend') {
+      // Frontend-only: Show only frontend templates
+      availableTemplates = getTemplatesByCategory('frontend');
+      messageText = 'Choose a frontend template:';
+    } else if (type === 'fullstack') {
+      // Full-stack: Show frontend templates, contracts will be added automatically
+      availableTemplates = getTemplatesByCategory('frontend').concat(getTemplatesByCategory('fullstack'));
+      messageText = 'Choose a frontend template (Hardhat contracts will be added automatically):';
+    } else {
+      // Should not reach here for frontend projects, but fallback to fullstack templates
+      availableTemplates = getTemplatesByCategory('fullstack');
+      messageText = 'Choose a template:';
+    }
 
     if (availableTemplates.length > 1) {
       const templateQuestion = {
         type: 'list' as const,
         name: 'selectedTemplate',
-        message: 'Choose a frontend template:',
+        message: messageText,
         choices: availableTemplates.map(template => ({
           name: `${template.framework} - ${template.description}`,
           value: template.key
@@ -110,6 +114,16 @@ async function gatherProjectInfo(projectName?: string, targetDir?: string): Prom
     }
   }
 
+  // Determine features based on template category and user selection
+  const selectedTemplate = template ? getTemplate(template.name) : null;
+  const templateCategory = selectedTemplate?.category;
+
+  const features: ProjectFeatures = {
+    contracts: determineNeedsContracts(type, templateCategory),
+    frontend: type === 'fullstack' || type === 'frontend',
+    documentation: determineNeedsDocumentation(type, templateCategory)
+  };
+
   return {
     name,
     type,
@@ -117,6 +131,33 @@ async function gatherProjectInfo(projectName?: string, targetDir?: string): Prom
     features,
     template
   };
+}
+
+function determineNeedsContracts(projectType: ProjectType, templateCategory?: string): boolean {
+  // Backend projects always need contracts
+  if (projectType === 'backend') return true;
+  
+  // Frontend projects never need separate contracts
+  if (projectType === 'frontend') return false;
+  
+  // Fullstack projects:
+  // - If template is 'fullstack', it already contains contracts - don't create separate
+  // - If template is 'frontend', we need to add contracts separately
+  if (projectType === 'fullstack') {
+    return templateCategory !== 'fullstack';
+  }
+  
+  return false;
+}
+
+function determineNeedsDocumentation(projectType: ProjectType, _templateCategory?: string): boolean {
+  // Frontend-only projects don't need docs
+  if (projectType === 'frontend') return false;
+  
+  // For fullstack projects:
+  // - If template is 'fullstack', it might already contain docs - but we can add them anyway
+  // - If template is 'frontend', we definitely need to add docs
+  return true;
 }
 
 async function createProject(config: ProjectConfig) {
@@ -133,16 +174,12 @@ async function createProject(config: ProjectConfig) {
     }
 
     if (config.features.frontend) {
-      spinner.start('Setting up frontend...');
+      // Don't use spinner for frontend setup - it has interactive prompts
+      console.log(chalk.blue('🎨 Setting up frontend...'));
       await setupFrontend(config);
-      spinner.succeed('Frontend setup complete');
+      console.log(chalk.green('✅ Frontend setup complete'));
     }
 
-    if (config.features.cloudFunctions) {
-      spinner.start('Setting up cloud functions...');
-      await setupCloudFunctions(config);
-      spinner.succeed('Cloud functions setup complete');
-    }
 
     if (config.features.documentation) {
       spinner.start('Setting up documentation...');
@@ -150,54 +187,9 @@ async function createProject(config: ProjectConfig) {
       spinner.succeed('Documentation setup complete');
     }
 
-    spinner.succeed('🎉 Project created successfully!');
+    // Project creation completed - template will display its own next steps
   } catch (error) {
     spinner.fail('Failed to create project');
     throw error;
   }
-}
-
-function displaySuccessMessage(config: ProjectConfig) {
-  console.log('\n' + chalk.green.bold('✅ Your Polkadot Dapp project is ready!'));
-  console.log('\n📁 Project structure:');
-  
-  if (config.features.contracts) {
-    console.log(chalk.blue('  contracts/develop/') + ' - Smart contract development (Foundry)');
-    console.log(chalk.blue('  contracts/deploy/') + ' - Smart contract deployment (Hardhat)');
-  }
-  
-  if (config.features.frontend) {
-    console.log(chalk.blue('  front/') + ' - Frontend application');
-  }
-  
-  if (config.features.cloudFunctions) {
-    console.log(chalk.blue('  cloud-functions/') + ' - Cloud function implementations');
-  }
-  
-  if (config.features.documentation) {
-    console.log(chalk.blue('  docs/') + ' - Project documentation (mdbook)');
-  }
-
-  console.log('\n🚀 Next steps:');
-  console.log(chalk.yellow(`  cd ${config.name}`));
-  
-  if (config.features.frontend) {
-    console.log(chalk.yellow('  cd front && npm install && npm run dev'));
-  }
-  
-  if (config.features.contracts) {
-    console.log(chalk.yellow('  cd contracts/develop && forge build'));
-  }
-
-  // Show template documentation if available
-  if (config.template) {
-    const template = getTemplate(config.template.name);
-    if (template?.documentationUrl) {
-      console.log('\n📚 Template Documentation:');
-      console.log(chalk.cyan(`  ${template.documentationUrl}`));
-      console.log(chalk.gray('  ↳ Complete guide and examples for this template'));
-    }
-  }
-
-  console.log('\n📖 For more information, check the documentation in the docs/ folder');
 }

@@ -3,7 +3,9 @@ import path from 'path';
 import degit from 'degit';
 import ora, { Ora } from 'ora';
 import chalk from 'chalk';
-import { TemplateDefinition, TemplateSource, ProjectConfig } from '../types.js';
+import inquirer from 'inquirer';
+import { spawn } from 'child_process';
+import { TemplateDefinition, TemplateSource, ProjectConfig, TemplateCommand } from '../types.js';
 
 /**
  * Template Loader - Handles loading templates from local and remote sources
@@ -35,13 +37,24 @@ export class TemplateLoader {
         templatePath = await this.loadRemoteTemplate(template.source, spinner);
       }
 
-      // Copy template to target directory
+      // Copy template to target directory as-is
       await this.copyTemplate(templatePath, targetDir, config);
-      
-      // Customize template files
-      await this.customizeTemplate(targetDir, config);
 
       spinner.succeed(`${template.name} template loaded successfully`);
+
+      // Prompt user for optional setup commands if specified
+      if (template.optionalSetup && template.optionalSetup.commands.length > 0) {
+        const shouldRunOptionalSetup = await this.promptUserForOptionalSetup(template);
+        if (shouldRunOptionalSetup) {
+          await this.executeOptionalSetupWithProgress(template, targetDir);
+        }
+      }
+
+      // Display next steps guidance
+      if (template.nextSteps) {
+        this.displayNextSteps(template, targetDir);
+      }
+
     } catch (error) {
       spinner.fail(`Failed to load ${template.name} template`);
       throw error;
@@ -109,7 +122,7 @@ export class TemplateLoader {
   private async copyTemplate(
     sourcePath: string, 
     targetPath: string, 
-    config: ProjectConfig
+    _config: ProjectConfig
   ): Promise<void> {
     await fs.copy(sourcePath, targetPath, {
       filter: (src) => {
@@ -131,67 +144,259 @@ export class TemplateLoader {
     });
   }
 
+
   /**
-   * Customize template files with project-specific information
+   * Prompt user for consent to run optional setup commands
    */
-  private async customizeTemplate(templateDir: string, config: ProjectConfig): Promise<void> {
-    // Update package.json
-    await this.updatePackageJson(templateDir, config);
+  private async promptUserForOptionalSetup(template: TemplateDefinition): Promise<boolean> {
+    const { optionalSetup } = template;
+    if (!optionalSetup) return false;
+
+    console.log(chalk.blue('\n🔧 Optional Setup Available'));
+    console.log(chalk.gray(optionalSetup.description || 'Additional setup commands are available for this template.'));
     
-    // Update other template files with project name
-    await this.updateTemplateFiles(templateDir, config);
+    console.log('\nCommands that will be executed:');
+    optionalSetup.commands.forEach((command: any, index: number) => {
+      const workingDir = command.workingDirectory ? ` (in ${command.workingDirectory})` : '';
+      console.log(chalk.yellow(`  ${index + 1}. ${command.command}${workingDir}`));
+      if (command.description) {
+        console.log(chalk.gray(`     ${command.description}`));
+      }
+    });
+
+    const answer = await inquirer.prompt([{
+      type: 'confirm',
+      name: 'proceed',
+      message: 'Would you like to run these optional setup commands now?',
+      default: true
+    }]);
+
+    return answer.proceed;
   }
 
   /**
-   * Update package.json with project-specific information
+   * Execute optional setup commands with real-time progress streaming
    */
-  private async updatePackageJson(templateDir: string, config: ProjectConfig): Promise<void> {
-    const packageJsonPath = path.join(templateDir, 'package.json');
-    
-    if (await fs.pathExists(packageJsonPath)) {
-      const packageJson = await fs.readJson(packageJsonPath);
-      
-      packageJson.name = `${config.name}-frontend`;
-      packageJson.description = `Frontend for ${config.name} - A Polkadot DApp`;
-      
-      await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
-    }
-  }
+  private async executeOptionalSetupWithProgress(
+    template: TemplateDefinition,
+    targetDir: string
+  ): Promise<void> {
+    const { optionalSetup } = template;
+    if (!optionalSetup) return;
 
-  /**
-   * Update template files with project name and other customizations
-   */
-  private async updateTemplateFiles(templateDir: string, config: ProjectConfig): Promise<void> {
-    // Common files that might need project name replacement
-    const filesToUpdate = [
-      'src/App.tsx',
-      'src/App.vue', 
-      'src/App.svelte',
-      'index.html',
-      'README.md'
-    ];
+    console.log(chalk.blue(`\n🚀 Running optional setup for ${template.name}...`));
 
-    for (const file of filesToUpdate) {
-      const filePath = path.join(templateDir, file);
-      
-      if (await fs.pathExists(filePath)) {
-        try {
-          let content = await fs.readFile(filePath, 'utf-8');
-          
-          // Replace common placeholders
-          content = content
-            .replace(/{{project-name}}/g, config.name)
-            .replace(/{{PROJECT_NAME}}/g, config.name.toUpperCase())
-            .replace(/create-polkadot-dapp/g, config.name)
-            .replace(/template-name/g, config.name);
-          
-          await fs.writeFile(filePath, content);
-        } catch (error) {
-          // Ignore errors for individual files - they might be binary or have encoding issues
-          console.warn(chalk.yellow(`Warning: Could not update ${file}`));
-        }
+    for (const [index, command] of optionalSetup.commands.entries()) {
+      try {
+        console.log(chalk.blue(`\n[${index + 1}/${optionalSetup.commands.length}] ${command.description || command.command}`));
+        console.log(chalk.gray(`Command: ${command.command}`));
+        
+        const workingDir = command.workingDirectory 
+          ? path.join(targetDir, command.workingDirectory)
+          : targetDir;
+        
+        console.log(chalk.gray(`Working directory: ${workingDir}`));
+        console.log(chalk.gray('Output:'));
+
+        await this.executeCommandWithStreaming(command, targetDir);
+        console.log(chalk.green(`✅ Command completed successfully\n`));
+
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.log(chalk.red(`❌ Command failed: ${errorMessage}\n`));
+        throw new Error(`Optional setup command failed: ${command.command} - ${errorMessage}`);
       }
     }
+
+    console.log(chalk.green(`🎉 Optional setup completed for ${template.name}!`));
+  }
+
+  /**
+   * Display next steps guidance from template configuration
+   */
+  private displayNextSteps(template: TemplateDefinition, _targetDir: string): void {
+    const { nextSteps } = template;
+    if (!nextSteps) return;
+
+    console.log(chalk.blue(`\n📋 ${nextSteps.title}`));
+    console.log(chalk.gray('Follow these steps to get started:\n'));
+
+    nextSteps.instructions.forEach((instruction: any, index: number) => {
+      console.log(chalk.blue(`${index + 1}. ${instruction.title}`));
+      console.log(chalk.gray(`   ${instruction.description}`));
+      
+      instruction.commands.forEach((cmd: string) => {
+        const workingDir = instruction.workingDirectory 
+          ? ` (run in ${instruction.workingDirectory})` 
+          : '';
+        console.log(chalk.yellow(`   ${cmd}${workingDir}`));
+      });
+      console.log(''); // Empty line between steps
+    });
+
+    if (nextSteps.documentationUrl) {
+      console.log(chalk.cyan(`📚 Documentation: ${nextSteps.documentationUrl}`));
+    }
+  }
+
+  /**
+   * Execute a single template command with real-time output streaming
+   */
+  private async executeCommandWithStreaming(command: TemplateCommand, templateDir: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const workingDir = command.workingDirectory 
+        ? path.join(templateDir, command.workingDirectory)
+        : templateDir;
+
+      // Check if working directory exists
+      if (!fs.existsSync(workingDir)) {
+        reject(new Error(`Working directory not found: ${workingDir}`));
+        return;
+      }
+
+      // Parse command and arguments
+      const [cmd, ...args] = command.command.split(' ');
+
+      const child = spawn(cmd, args, {
+        cwd: workingDir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        shell: true
+      });
+
+      let hasOutput = false;
+      let loadingAnimation: NodeJS.Timeout | null = null;
+
+      // Start cool loading animation
+      loadingAnimation = this.startLoadingAnimation(command.command);
+
+      child.stdout?.on('data', (data) => {
+        // Stop loading animation when output starts
+        if (loadingAnimation) {
+          clearInterval(loadingAnimation);
+          loadingAnimation = null;
+          process.stdout.write('\r\x1b[K'); // Clear current line
+        }
+        hasOutput = true;
+        
+        // Stream output directly to console with indentation
+        const output = data.toString();
+        output.split('\n').forEach((line: string) => {
+          if (line.trim()) {
+            console.log(`   ${line}`);
+          }
+        });
+      });
+
+      child.stderr?.on('data', (data) => {
+        // Stop loading animation when output starts
+        if (loadingAnimation) {
+          clearInterval(loadingAnimation);
+          loadingAnimation = null;
+          process.stdout.write('\r\x1b[K'); // Clear current line
+        }
+        hasOutput = true;
+        
+        // Stream error output directly to console with indentation and color
+        const output = data.toString();
+        output.split('\n').forEach((line: string) => {
+          if (line.trim()) {
+            console.log(chalk.yellow(`   ${line}`));
+          }
+        });
+      });
+
+      child.on('close', (code) => {
+        // Stop loading animation if still running
+        if (loadingAnimation) {
+          clearInterval(loadingAnimation);
+          loadingAnimation = null;
+          process.stdout.write('\r\x1b[K'); // Clear current line
+        }
+        
+        if (!hasOutput) {
+          console.log(chalk.gray('   (no output)'));
+        }
+        
+        if (code === 0) {
+          resolve();
+        } else {
+          reject(new Error(`Command exited with code ${code}`));
+        }
+      });
+
+      child.on('error', (error) => {
+        // Stop loading animation on error
+        if (loadingAnimation) {
+          clearInterval(loadingAnimation);
+          loadingAnimation = null;
+          process.stdout.write('\r\x1b[K'); // Clear current line
+        }
+        reject(new Error(`Failed to execute command: ${error.message}`));
+      });
+
+      // Set timeout (default 60 seconds)
+      const timeout = command.timeout || 60000;
+      setTimeout(() => {
+        child.kill();
+        reject(new Error(`Command timed out after ${timeout}ms`));
+      }, timeout);
+    });
+  }
+
+  /**
+   * Execute a single template command (legacy method - kept for compatibility)
+   */
+  private async executeCommand(command: TemplateCommand, templateDir: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const workingDir = command.workingDirectory 
+        ? path.join(templateDir, command.workingDirectory)
+        : templateDir;
+
+      // Check if working directory exists
+      if (!fs.existsSync(workingDir)) {
+        reject(new Error(`Working directory not found: ${workingDir}`));
+        return;
+      }
+
+      // Parse command and arguments
+      const [cmd, ...args] = command.command.split(' ');
+
+      const child = spawn(cmd, args, {
+        cwd: workingDir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        shell: true
+      });
+
+      let output = '';
+      let errorOutput = '';
+
+      child.stdout?.on('data', (data) => {
+        output += data.toString();
+      });
+
+      child.stderr?.on('data', (data) => {
+        errorOutput += data.toString();
+      });
+
+      child.on('close', (code) => {
+        if (code === 0) {
+          resolve();
+        } else {
+          reject(new Error(`Command exited with code ${code}. Error: ${errorOutput || output}`));
+        }
+      });
+
+      child.on('error', (error) => {
+        reject(new Error(`Failed to execute command: ${error.message}`));
+      });
+
+      // Set timeout (default 60 seconds)
+      const timeout = command.timeout || 60000;
+      setTimeout(() => {
+        child.kill();
+        reject(new Error(`Command timed out after ${timeout}ms`));
+      }, timeout);
+    });
   }
 
   /**
@@ -200,10 +405,37 @@ export class TemplateLoader {
   async cleanup(): Promise<void> {
     try {
       await fs.remove(this.tempDir);
-    } catch (error) {
+    } catch (_error) {
       // Ignore cleanup errors
       console.warn(chalk.yellow('Warning: Could not clean up temporary files'));
     }
+  }
+
+  /**
+   * Start cool loading animation while waiting for command output
+   */
+  private startLoadingAnimation(command: string): NodeJS.Timeout {
+    const frames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+    const colors = [chalk.cyan, chalk.blue, chalk.magenta, chalk.green];
+    let frameIndex = 0;
+    let colorIndex = 0;
+    
+    const loadingInterval = setInterval(() => {
+      const frame = frames[frameIndex];
+      const color = colors[colorIndex];
+      const message = command.includes('install') 
+        ? '📦 Installing dependencies...' 
+        : '⚡ Running command...';
+      
+      process.stdout.write(`\r   ${color(frame)} ${message}`);
+      
+      frameIndex = (frameIndex + 1) % frames.length;
+      if (frameIndex === 0) {
+        colorIndex = (colorIndex + 1) % colors.length;
+      }
+    }, 80);
+
+    return loadingInterval;
   }
 }
 

@@ -5,18 +5,22 @@ import { ProjectConfig } from '../types.js';
 export async function createProjectStructure(config: ProjectConfig): Promise<void> {
   await fs.ensureDir(config.directory);
 
+  // For frontend-only projects, use single repo structure (no subdirectories)
+  if (config.type === 'frontend') {
+    // Frontend-only projects don't need subdirectories
+    // Template will be loaded directly to project root
+    return;
+  }
+
+  // For fullstack and backend projects, create monorepo structure
   const folders = [];
   
   if (config.features.contracts) {
-    folders.push('contracts/develop', 'contracts/deploy');
+    folders.push('contracts');
   }
   
   if (config.features.frontend) {
     folders.push('front');
-  }
-  
-  if (config.features.cloudFunctions) {
-    folders.push('cloud-functions');
   }
   
   if (config.features.documentation) {
@@ -33,6 +37,11 @@ export async function createProjectStructure(config: ProjectConfig): Promise<voi
 }
 
 async function createRootPackageJson(config: ProjectConfig): Promise<void> {
+  // Frontend-only projects don't need root package.json - template provides it
+  if (config.type === 'frontend') {
+    return;
+  }
+
   const packageJson = {
     name: config.name,
     version: '0.1.0',
@@ -67,21 +76,23 @@ function getWorkspaces(config: ProjectConfig): string[] {
   const workspaces = [];
   
   if (config.features.contracts) {
-    workspaces.push('contracts/deploy');
+    workspaces.push('contracts');
   }
   
   if (config.features.frontend) {
     workspaces.push('front');
   }
   
-  if (config.features.cloudFunctions) {
-    workspaces.push('cloud-functions');
-  }
 
   return workspaces;
 }
 
 async function createGitignore(config: ProjectConfig): Promise<void> {
+  // Frontend-only projects should use template's gitignore
+  if (config.type === 'frontend') {
+    return;
+  }
+
   const gitignoreContent = `# Dependencies
 node_modules/
 npm-debug.log*
@@ -117,11 +128,10 @@ Thumbs.db
 .parcel-cache/
 
 # Contracts
-contracts/develop/out/
-contracts/develop/cache/
-contracts/deploy/artifacts/
-contracts/deploy/cache/
-contracts/deploy/typechain-types/
+contracts/out/
+contracts/cache/
+contracts/artifacts/
+contracts/typechain-types/
 
 # Documentation
 docs/book/`;
@@ -133,6 +143,11 @@ docs/book/`;
 }
 
 async function createReadme(config: ProjectConfig): Promise<void> {
+  // Frontend-only projects should use template's README
+  if (config.type === 'frontend') {
+    return;
+  }
+
   const readmeContent = `# ${config.name}
 
 A Polkadot Dapp built with [kit-dot](https://github.com/your-org/kit-dot).
@@ -141,18 +156,12 @@ A Polkadot Dapp built with [kit-dot](https://github.com/your-org/kit-dot).
 
 ${config.features.contracts ? `
 ### 📄 Smart Contracts
-- \`contracts/develop/\` - Smart contract development with Foundry
-- \`contracts/deploy/\` - Smart contract deployment with Hardhat
+- \`contracts/\` - Smart contract development and deployment
 ` : ''}
 
 ${config.features.frontend ? `
 ### 🎨 Frontend
 - \`front/\` - React frontend application with Polkadot integration
-` : ''}
-
-${config.features.cloudFunctions ? `
-### ⚡ Cloud Functions
-- \`cloud-functions/\` - Serverless functions for backend logic
 ` : ''}
 
 ${config.features.documentation ? `
@@ -178,7 +187,7 @@ ${config.features.frontend ? `
 ${config.features.contracts ? `
 3. Build smart contracts:
    \`\`\`bash
-   cd contracts/develop
+   cd contracts
    forge build
    \`\`\`
 ` : ''}
