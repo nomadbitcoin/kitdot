@@ -3,6 +3,8 @@ ROADMAP:
 The broader vision is to have an sdk of sdks...
 documentation go beyond its own and inherits the included tooling/sdk docs...
 
+All this to disponibilize tools for builders build projects.
+
 - This is project overall and not limited to sdk codebase only.
 
 - [ ] npx install initialize the sdk already "npx install kitdot"
@@ -11,6 +13,14 @@ AI Agents and Assistants:
 The one who knows all the links...
 [TO_IMPLEMENT_FURTHER] Could be connected with SEO data too
 Create an workflow to ask different published GPT Agents about polkadot-substrate/etheruem. etc. to ask their link knowledge tree.
+
+For Future: [Business Side]
+How to use ahrefs to discover good ranking tools and build them.
+Build solutions for already existing demand
+why web3? Build unstopabble apps
+
+Campaign:
+Share technical reserches conducted during the development. Thirdweb contracts for example. There is a lof of tangents and outreach we can obtain from blog posts, threads and educational content about pieces of the process or the vision we are building.
 
 [LandingPage]:
 use Reactbits.dev:
@@ -30,7 +40,11 @@ Hackathon forms....
 Buildathon forms....
 and more can be brainstormed.
 
+REFACT:
+front folder is being created togheter with fullstack templates when user select full-stack mode.
+
 TEST:
+Organize all tests within proper folder.
 We should have more tests. One that simulates all user actions within cli possibilities of templates on a empty environment.
 
 Desired Features and UX:
@@ -53,6 +67,7 @@ Our wiki should have documentation for each template explaining their big depend
 have llmstxt for our public resources.
 We should research and decide if we will Use https://www.algolia.com/ for AI integration on the docs.
 Is there a way we can build a "Map of Maps?" to somehow embedd from all other ecosystem maps of tools and Dapps.
+Ideally, all and each template should have an tree of links to feed user's AI within selected templates.
 
 AI Integrations:
 how can we make the sdk usable by lovable or other AI generators? THe user should be able to say "use the template XXX from kitdot" or similar commands.
@@ -79,7 +94,9 @@ React quick-starts/react-quick-start:
 - [ ] Adicionar um exemplo funcional de contrato Oracle, que demonstre a inicialização e a interação com o contrato diretamente no template.
 
 [Research]
+Consider adding PIX integration within available templates.
 
 - [ ] R&D: Test how to initialize contracts inside contracts.
 - [ ] R&D: Pay transactions with any asset -> Leads to templates of it.
 - [ ] R&D: Account Abstraction on PolkaVM -> Leads to templates of it.
+      What are all the tools from ETH Ecosystem that worths bringing? How many PRs can we open to add "assetHub" within their list of chains...
