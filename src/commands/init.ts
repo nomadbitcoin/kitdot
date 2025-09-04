@@ -9,8 +9,7 @@ import { setupFrontend } from '../utils/setup-frontend.js';
 import { setupDocumentation } from '../utils/setup-docs.js';
 import { getTemplatesByCategory, getTemplate } from '../templates/registry.js';
 import { displayHomeScreen } from '../utils/homeScreen.js';
-import { PlatformDetector } from '../tools/platform-detector.js';
-import { RustInstaller } from '../tools/rust-installer.js';
+// Remove Rust installation from init - moved to tools module
 
 export async function initCommand(projectName?: string, options?: { dir?: string }) {
   // Display the new styled home screen
@@ -131,18 +130,12 @@ async function gatherProjectInfo(projectName?: string, targetDir?: string): Prom
     documentation: determineNeedsDocumentation(type, templateCategory)
   };
 
-  // Platform detection and Rust installation consent
-  const platformSetup = await promptForPlatformAndRustSetup();
-
   return {
     name,
     type,
     directory,
     features,
-    template,
-    platformDetected: platformSetup.platformDetected,
-    rustInstalled: platformSetup.rustInstalled,
-    toolInstallConsent: platformSetup.toolInstallConsent
+    template
   };
 }
 
@@ -173,89 +166,7 @@ function determineNeedsDocumentation(projectType: ProjectType, _templateCategory
   return true;
 }
 
-async function promptForPlatformAndRustSetup(): Promise<{
-  platformDetected?: string;
-  rustInstalled?: boolean;
-  toolInstallConsent?: boolean;
-}> {
-  const platformDetector = PlatformDetector.getInstance();
-  const rustInstaller = new RustInstaller();
-
-  // Check if Rust is already installed
-  const isRustInstalled = await rustInstaller.isToolInstalled();
-  
-  if (isRustInstalled) {
-    const version = await rustInstaller.getToolVersion();
-    console.log(chalk.green(`✅ Rust toolchain already installed: ${version}`));
-    return {
-      platformDetected: 'detected',
-      rustInstalled: true,
-      toolInstallConsent: false // No need for consent if already installed
-    };
-  }
-
-  // Ask user for consent to install Rust
-  const rustConsentQuestion = {
-    type: 'confirm' as const,
-    name: 'installRust',
-    message: '🦀 Install Rust toolchain for blockchain development?',
-    default: true
-  };
-
-  const rustAnswer = await inquirer.prompt([rustConsentQuestion]);
-
-  if (!rustAnswer.installRust) {
-    console.log(chalk.yellow('⚠️  Skipping Rust installation.'));
-    console.log(chalk.blue('💡 You can install Rust later by visiting: https://rustup.rs/'));
-    return {
-      platformDetected: 'skipped',
-      rustInstalled: false,
-      toolInstallConsent: false
-    };
-  }
-
-  // Detect platform and show time warning
-  const platformInfo = await platformDetector.detectPlatform();
-  const timeEstimate = rustInstaller.getInstallationTimeEstimate(platformInfo.platform);
-  
-  console.log(chalk.blue(`🖥️  Platform detected: ${platformInfo.platform} (${platformInfo.architecture})`));
-  console.log(chalk.yellow(`⏱️  Estimated installation time: ${timeEstimate}`));
-
-  if (!platformInfo.isSupported) {
-    console.log(chalk.yellow('⚠️  Automatic installation not supported for your platform.'));
-    console.log(chalk.blue(platformDetector.getInstallationGuidance(platformInfo.platform)));
-    return {
-      platformDetected: platformInfo.platform,
-      rustInstalled: false,
-      toolInstallConsent: true
-    };
-  }
-
-  const confirmInstallQuestion = {
-    type: 'confirm' as const,
-    name: 'proceedWithInstall',
-    message: 'Proceed with Rust installation?',
-    default: true
-  };
-
-  const confirmAnswer = await inquirer.prompt([confirmInstallQuestion]);
-
-  if (!confirmAnswer.proceedWithInstall) {
-    console.log(chalk.yellow('⚠️  Installation cancelled by user.'));
-    console.log(chalk.blue(platformDetector.getInstallationGuidance(platformInfo.platform)));
-    return {
-      platformDetected: platformInfo.platform,
-      rustInstalled: false,
-      toolInstallConsent: false
-    };
-  }
-
-  return {
-    platformDetected: platformInfo.platform,
-    rustInstalled: false, // Will be updated after actual installation
-    toolInstallConsent: true
-  };
-}
+// Rust installation logic moved to tools module
 
 async function createProject(config: ProjectConfig) {
   const spinner = ora('Creating project structure...').start();
@@ -264,34 +175,7 @@ async function createProject(config: ProjectConfig) {
     await createProjectStructure(config);
     spinner.succeed('Project structure created');
 
-    // Handle Rust installation if user consented
-    if (config.toolInstallConsent && !config.rustInstalled) {
-      spinner.start('Installing Rust toolchain for blockchain development...');
-      const rustInstaller = new RustInstaller();
-      const platformDetector = PlatformDetector.getInstance();
-      const platformInfo = platformDetector.getCachedPlatformInfo();
-      
-      try {
-        const installResult = await rustInstaller.installRust(platformInfo?.platform || 'unknown');
-        
-        if (installResult.success) {
-          if (installResult.skipped) {
-            spinner.succeed(`Rust toolchain ready: ${installResult.version}`);
-          } else {
-            spinner.succeed(`Rust toolchain installed successfully: ${installResult.version}`);
-          }
-        } else {
-          spinner.fail('Rust installation failed');
-          console.log(chalk.yellow('⚠️  ' + installResult.error));
-          console.log(chalk.blue(rustInstaller.getTroubleshootingGuidance(installResult.platform, installResult.error)));
-          console.log(chalk.gray('Project setup will continue without Rust...'));
-        }
-      } catch (error) {
-        spinner.fail('Rust installation failed');
-        console.log(chalk.red('❌ Unexpected error during Rust installation:', error));
-        console.log(chalk.gray('Project setup will continue without Rust...'));
-      }
-    }
+    // Rust installation removed from init flow - now handled by tools module
 
     if (config.features.contracts) {
       spinner.start('Setting up smart contracts...');
@@ -318,4 +202,9 @@ async function createProject(config: ProjectConfig) {
     spinner.fail('Failed to create project');
     throw error;
   }
+  
+  // Ensure clean exit
+  process.nextTick(() => {
+    // Allow any pending operations to complete before exit
+  });
 }
