@@ -4,6 +4,9 @@ export interface ProjectConfig {
   directory: string;
   features: ProjectFeatures;
   template?: TemplateConfig;
+  platformDetected?: string;
+  rustInstalled?: boolean;
+  toolInstallConsent?: boolean;
 }
 
 export interface TemplateConfig {
