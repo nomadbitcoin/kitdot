@@ -7,6 +7,7 @@ export interface ProjectConfig {
   platformDetected?: string;
   rustInstalled?: boolean;
   toolInstallConsent?: boolean;
+  installRustTools?: boolean;
 }
 
 export interface TemplateConfig {
