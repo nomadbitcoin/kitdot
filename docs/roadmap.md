@@ -1,7 +1,12 @@
 ROADMAP:
 
-The broader vision is to have an sdk of sdks...
-documentation go beyond its own and inherits the included tooling/sdk docs...
+Moonshot: Vision:
+CLI For Developers and Business with Claude Code UX terminal, but for a given pre-defined technology.
+Ex: Web3. That's our bootstrap tech.
+Prioritize Integrate already existing available MCPs for existing tools. But for those unavailable but essential tools, embedded cli should be used.
+
+An sdk of sdks...
+documentation go beyond its and inherits the included embedded-tooling/embedded-sdk docs
 
 All this to disponibilize tools for builders build projects.
 
@@ -81,7 +86,9 @@ Branding:
 Ethereum Elements with Polkadot Color Palet.
 
 [TEMPLATES CODEBASE] Templates
-Add template with wallet-only:
+Add templates for OTP code generation.
+Add template with wallet-only (wallet-connect/thirweb and other kits)
+Add template PIX integration.
 
 - [ ] https://github.com/reown-com/appkit-web-examples
 
@@ -94,7 +101,6 @@ React quick-starts/react-quick-start:
 - [ ] Adicionar um exemplo funcional de contrato Oracle, que demonstre a inicialização e a interação com o contrato diretamente no template.
 
 [Research]
-Consider adding PIX integration within available templates.
 
 - [ ] R&D: Test how to initialize contracts inside contracts.
 - [ ] R&D: Pay transactions with any asset -> Leads to templates of it.

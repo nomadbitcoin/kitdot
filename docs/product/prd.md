@@ -30,33 +30,43 @@ kit-dot init my-project
 - Basic project scaffolding and dependencies setup
 - Supports both monorepo and single repo project structures
 
-## Coming Soon Features
+## Current Development Status
 
-### MCP Server Integration
+### Phase 0: Foundation ✅ COMPLETE
+- ✅ Project structure refactoring (Stories 1.1 completed)
+- ✅ Template validation system with CI/CD integration  
+- ✅ Official Parity template integration (react-solidity-hardhat)
+- ✅ Remote template loading from GitHub repositories
+- ✅ Core CLI functionality with TypeScript compilation
 
-- Model Context Protocol server for AI development assistance
-- Automated code generation and smart contract interaction
+### Phase 1: Core Features 🔄 IN PROGRESS (Target: Week 2)
+- **UX Enhancement**: Implement ink.js terminal components for modern CLI experience
+- **NPX Distribution**: Complete package publishing and cross-platform testing
+- **Dependency Integration**: Reliable `-i` flag functionality for auto-installation
+- **Error Handling**: Comprehensive error messages and recovery strategies
+
+### Phase 2: MVP Launch 📋 PLANNED (Target: Week 3 - Hackathon Ready)
+- **Live Deployment Testing**: Verify contracts deploy to PolkaVM successfully
+- **Beta User Testing**: Gather feedback from 5+ experienced developers
+- **Demo Preparation**: Hackathon presentation materials and live demo
+
+## Post-MVP Features (Deferred)
+
+### AI Integration & Automation
+- Model Context Protocol server for development assistance
+- GPT workflow integration for template discovery
 - Intelligent project analysis and recommendations
 
-### Enhanced Templates
+### Enhanced Template Ecosystem
+- Thirdweb contracts compatibility testing (130+ pre-built contracts)
+- Advanced wallet integration templates
+- Multiple framework support (Vue, Svelte, Angular)
+- Template marketplace and community contributions
 
-- Templates with seamless wallet generation and onboarding
-- Pre-configured authentication flows
-- Ready-to-use wallet integration patterns
-
-### 130 Pre-built Smart Contracts
-
-- Audited contract library from thirdweb integration
-- NFT, token, marketplace, and governance contracts
-- One-command deployment of battle-tested contracts
-- Upgradeable proxy patterns included
-
-### Fully Decentralized Cloud Services
-
-- **Acurast Parachain**: Decentralized cloud functions execution
-- **Crust Network**: IPFS hosting and storage via Apillon SDK
-- **Polkadot Cloud Native**: No AWS or traditional web2 dependencies
-- Complete decentralized application stack
+### Advanced Embedded Tools
+- **Pop CLI v0.9.0+**: Integrated local PolkaVM node management
+- **Scaffold-eth components**: Reusable UI components for Web3
+- **Advanced SDK integrations**: Beyond basic template scaffolding
 
 ## Project Generated Structure
 
@@ -101,18 +111,20 @@ Kit-Dot generates complete project structures with the following components:
 
 ### Smart Contracts
 
-- Hardhat development environment with testing framework
-- Deployment scripts for Polkadot Cloud networks
-- Official Parity templates integration
-- Simplified flat directory structure
+- ✅ Hardhat development environment with testing framework
+- ✅ Official Parity templates integration (react-solidity-hardhat)
+- ✅ Simplified flat directory structure (develop/deploy → contracts/)
+- 🔄 PolkaVM deployment scripts and testing
+- 🔄 Local PolkaVM node integration via pop cli
 
 ### Frontend Applications
 
-- React + TypeScript with Polkadot Cloud integration
-- Official Parity template integration
-- Tailwind CSS for styling
-- Templates loaded as-is without forced modifications
-- Single repo mode for frontend-only projects
+- ✅ React + TypeScript with Polkadot Cloud integration
+- ✅ Official Parity template integration (paritytech/create-polkadot-dapp)
+- ✅ Templates loaded as-is without forced modifications
+- ✅ Single repo mode for frontend-only projects
+- ✅ Tailwind CSS and Vite build system
+- 🔄 Enhanced terminal UX with ink.js components
 
 ### Documentation
 
@@ -122,19 +134,26 @@ Kit-Dot generates complete project structures with the following components:
 
 ## Target Use Cases
 
-### Development Teams
+### Primary Target: Ethereum Developers Transitioning to Polkadot
+- **Experience Level**: Developers with existing Ethereum/Web3 experience
+- **Pain Point**: Complex setup process for Polkadot development environment
+- **Value Proposition**: Familiar patterns with Polkadot-specific optimizations
+- **Success Metric**: Contracts deployed to PolkaVM within first project initialization
 
-- Setting up new Polkadot Cloud projects
-- Standardizing development workflows
-- Deploying smart contracts to testnets
-- Building frontend applications with wallet integration
+### Secondary Target: Web3 Development Teams
+- **Use Case**: Standardizing development workflows across team members
+- **Value Proposition**: Consistent project structure and tooling
+- **Success Metric**: Reduced onboarding time for new team members
 
-### Individual Developers
+### Hackathon & Rapid Prototyping
+- **Use Case**: Quick project setup for hackathons and proof-of-concepts
+- **Value Proposition**: Zero-to-deployed in minutes rather than hours
+- **Success Metric**: Live demos with working PolkaVM contracts
 
-- Learning Polkadot Cloud development
-- Prototyping dApp ideas
-- Contributing to existing projects
-- Building portfolio projects
+### Educational & Portfolio Development
+- **Use Case**: Learning Polkadot development, building portfolio projects
+- **Value Proposition**: Official templates ensure best practices
+- **Success Metric**: Functional projects that demonstrate Web3 capabilities
 
 ### Benefits
 
@@ -174,29 +193,51 @@ npm install -g kit-dot
 
 ## Quick Start
 
+### Current (v0.1.0)
 ```bash
+# Install from source (development)
+git clone https://github.com/your-org/kit-dot
+cd kit-dot
+npm install && npm run build
+npm link
+
 # Initialize new project
 kit-dot init my-dapp
 cd my-dapp
-
-# Install dependencies
 npm install
+```
 
-# Project structure is ready for development
-# Additional features coming soon
+### Target MVP (v0.2.0 - Hackathon Ready)
+```bash
+# Global installation
+npx kit-dot init my-dapp
+
+# With auto-dependency installation
+npx kit-dot init my-dapp -i
+
+# Enhanced UX with terminal components
+# Validated templates with guaranteed deployment success
 ```
 
 ## Available Commands
 
+### Current Commands
 ```bash
-kit-dot init [name]     # Create new project (current)
+kit-dot init [name]     # Create new project with template selection
+kit-dot init [name] -i  # Create project with auto-dependency installation
 ```
 
-### Coming Soon Commands
+### Project Templates Available
+- **basic-polkadot-dapp**: Official Parity React + Solidity + Hardhat template
+- **social-login-web3-react**: React dApp with Web3Auth social login integration
+- **Project Types**: Fullstack, frontend-only, contracts-only
 
+### Post-MVP Commands (Planned)
 ```bash
-kit-dot templates       # Browse Dapp templates library
-kit-dot contracts       # Browse thirdweb contract library
+kit-dot templates       # Browse template library with community contributions
+kit-dot contracts       # Browse thirdweb contract library (130+ contracts)
+kit-dot deploy         # One-command deployment to PolkaVM networks
+kit-dot validate       # Validate project configuration and dependencies
 ```
 
 ## Development Workflow (Planned)
