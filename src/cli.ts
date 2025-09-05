@@ -11,7 +11,7 @@ program
   .name('kit-dot')
   .description('A TypeScript SDK toolkit for building Dapps on Polkadot Cloud')
   .version('0.1.0')
-  .addHelpText('after', '\nDevelopment Tools:\n  kit-dot tools install-rust  Install Rust toolchain\n  kit-dot tools check         Check tool status\n');
+  .addHelpText('after', '\nDevelopment Tools:\n  kit-dot tools install-rust     Install Rust toolchain\n  kit-dot tools install-pop-cli  Install Pop-CLI for blockchain nodes\n  kit-dot tools check            Check tool status\n');
 
 program
   .command('init')
@@ -23,7 +23,7 @@ program
 program
   .command('tools')
   .description('Manage development tools (Rust, Pop-CLI, etc.)')
-  .argument('[subcommand]', 'Tools subcommand: install-rust, check')
+  .argument('[subcommand]', 'Tools subcommand: install-rust, install-pop-cli, check')
   .action(toolsCommand);
 
 program
