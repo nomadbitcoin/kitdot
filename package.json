@@ -9,7 +9,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "dev": "tsc --watch",
+    "dev": "tsx src/cli.ts",
     "start": "node dist/cli.js",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
