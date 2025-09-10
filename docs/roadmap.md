@@ -90,6 +90,9 @@ Add templates for OTP code generation.
 Add template with wallet-only (wallet-connect/thirweb and other kits)
 Add template PIX integration.
 
+TOOLS:
+Every tool instalation should update the --help commands on how to use this tool.
+
 - [ ] https://github.com/reown-com/appkit-web-examples
 
 React quick-starts/react-quick-start:
