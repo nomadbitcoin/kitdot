@@ -25,6 +25,67 @@ export async function initCommand(projectName?: string, options?: { dir?: string
 }
 
 async function gatherProjectInfo(projectName?: string, targetDir?: string): Promise<ProjectConfig> {
+  // First, ask about using default template
+  const defaultTemplateQuestion = {
+    type: 'confirm' as const,
+    name: 'useDefault',
+    message: 'Install default template [Y/n]?',
+    default: true
+  };
+
+  const defaultAnswer = await inquirer.prompt([defaultTemplateQuestion]);
+
+  // Get project name if not provided
+  let name: string;
+  if (!projectName) {
+    const nameQuestion = {
+      type: 'input' as const,
+      name: 'projectName',
+      message: 'What is your project name?',
+      default: 'my-polkadot-dapp',
+      validate: (input: string) => {
+        if (!/^[a-zA-Z0-9-_]+$/.test(input)) {
+          return 'Project name can only contain letters, numbers, hyphens, and underscores';
+        }
+        return true;
+      }
+    };
+
+    const nameAnswer = await inquirer.prompt([nameQuestion]);
+    name = nameAnswer.projectName;
+  } else {
+    name = projectName;
+  }
+
+  const directory = targetDir || path.join(process.cwd(), name);
+
+  // If user wants default template, use local templates/default
+  if (defaultAnswer.useDefault) {
+    const template: TemplateConfig = {
+      name: 'default',
+      source: {
+        type: 'local',
+        localPath: 'templates/default'
+      }
+    };
+
+    const features: ProjectFeatures = {
+      contracts: true,
+      frontend: true,
+      documentation: true
+    };
+
+    return {
+      name,
+      type: 'fullstack',
+      directory,
+      features,
+      template,
+      installRustTools: false
+    };
+  }
+
+  // If user wants non-default, proceed with existing flow
   const baseQuestions = [
     {
       type: 'list' as const,
@@ -47,34 +108,12 @@ async function gatherProjectInfo(projectName?: string, targetDir?: string): Prom
     }
   ];
 
-  let answers: { projectName?: string; projectType?: string; selectedTemplate?: string };
-  
-  if (!projectName) {
-    const nameQuestion = {
-      type: 'input' as const,
-      name: 'projectName',
-      message: 'What is your project name?',
-      default: 'my-polkadot-dapp',
-      validate: (input: string) => {
-        if (!/^[a-zA-Z0-9-_]+$/.test(input)) {
-          return 'Project name can only contain letters, numbers, hyphens, and underscores';
-        }
-        return true;
-      }
-    };
-    
-    answers = await inquirer.prompt([nameQuestion, ...baseQuestions]);
-  } else {
-    answers = await inquirer.prompt(baseQuestions);
-  }
-
-  const name = projectName || answers.projectName || 'my-polkadot-dapp';
+  const answers = await inquirer.prompt(baseQuestions);
   const type = (answers.projectType || 'fullstack') as ProjectType;
-  const directory = targetDir || path.join(process.cwd(), name);
 
-  // Template selection first
+  // Template selection for non-default flow
   let template: TemplateConfig | undefined;
-  
+
   if (type === 'fullstack' || type === 'frontend') {
     let availableTemplates;
     let messageText;
@@ -105,7 +144,7 @@ async function gatherProjectInfo(projectName?: string, targetDir?: string): Prom
       };
 
       const templateAnswer = await inquirer.prompt([templateQuestion]);
-      
+
       template = {
         name: templateAnswer.selectedTemplate,
         source: availableTemplates.find(t => t.key === templateAnswer.selectedTemplate)!.source

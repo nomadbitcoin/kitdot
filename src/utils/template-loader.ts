@@ -184,7 +184,7 @@ export class TemplateLoader {
   private async copyTemplate(
     sourcePath: string,
     targetPath: string,
-    _config: ProjectConfig
+    config: ProjectConfig
   ): Promise<void> {
     await fs.copy(sourcePath, targetPath, {
       filter: (src) => {
@@ -204,6 +204,84 @@ export class TemplateLoader {
         ].includes(basename);
       },
     });
+
+    // Personalize package.json files with project name
+    await this.personalizeTemplate(targetPath, config);
+  }
+
+  /**
+   * Personalize template by replacing placeholders with actual project values
+   */
+  private async personalizeTemplate(
+    targetPath: string,
+    config: ProjectConfig
+  ): Promise<void> {
+    // Find all package.json files in the template
+    const packageJsonFiles = await this.findPackageJsonFiles(targetPath);
+
+    for (const packageJsonPath of packageJsonFiles) {
+      await this.personalizePackageJson(packageJsonPath, config);
+    }
+  }
+
+  /**
+   * Find all package.json files recursively
+   */
+  private async findPackageJsonFiles(basePath: string): Promise<string[]> {
+    const packageJsonFiles: string[] = [];
+
+    const searchRecursively = async (dirPath: string) => {
+      const entries = await fs.readdir(dirPath, { withFileTypes: true });
+
+      for (const entry of entries) {
+        const fullPath = path.join(dirPath, entry.name);
+
+        if (entry.isDirectory()) {
+          // Skip node_modules and other excluded directories
+          if (!["node_modules", ".git", "dist", "build"].includes(entry.name)) {
+            await searchRecursively(fullPath);
+          }
+        } else if (entry.name === "package.json") {
+          packageJsonFiles.push(fullPath);
+        }
+      }
+    };
+
+    await searchRecursively(basePath);
+    return packageJsonFiles;
+  }
+
+  /**
+   * Personalize a single package.json file
+   */
+  private async personalizePackageJson(
+    packageJsonPath: string,
+    config: ProjectConfig
+  ): Promise<void> {
+    try {
+      const packageJson = await fs.readJson(packageJsonPath);
+
+      // Replace name with project name, keeping suffix if it exists
+      if (packageJson.name) {
+        const originalName = packageJson.name;
+
+        // If name contains "create-polkadot-dapp", replace with project name
+        if (originalName.includes("create-polkadot-dapp")) {
+          if (originalName.includes("-frontend")) {
+            packageJson.name = `${config.name}-frontend`;
+          } else if (originalName.includes("-contracts")) {
+            packageJson.name = `${config.name}-contracts`;
+          } else {
+            packageJson.name = config.name;
+          }
+        }
+      }
+
+      // Write the updated package.json back
+      await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
+    } catch (error) {
+      console.warn(`Warning: Could not personalize ${packageJsonPath}: ${error}`);
+    }
   }
 
   /**

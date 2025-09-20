@@ -8,6 +8,25 @@ import { TemplateRegistry } from "../types.js";
  * - Remote: Fetched from GitHub repositories using degit
  */
 export const TEMPLATE_REGISTRY: TemplateRegistry = {
+  // Default local template
+  "default": {
+    name: "Default Polkadot DApp",
+    description: "Local default template with React frontend and Hardhat contracts",
+    framework: "React",
+    category: "fullstack",
+    source: {
+      type: "local",
+      localPath: "templates/default",
+    },
+    features: [
+      "React",
+      "TypeScript",
+      "Vite",
+      "Tailwind CSS",
+      "Solidity",
+      "Hardhat",
+    ],
+  },
   // Official Parity template (updated to use remote source)
   "basic-polkadot-dapp": {
     name: "Basic Polkadot DApp",
