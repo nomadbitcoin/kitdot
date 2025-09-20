@@ -8,7 +8,7 @@ import { TemplateRegistry } from "../types.js";
  * - Remote: Fetched from GitHub repositories using degit
  */
 export const TEMPLATE_REGISTRY: TemplateRegistry = {
-  // Default local template
+  // Default local template - fullstack
   "default": {
     name: "Default Polkadot DApp",
     description: "Local default template with React frontend and Hardhat contracts",
@@ -25,6 +25,39 @@ export const TEMPLATE_REGISTRY: TemplateRegistry = {
       "Tailwind CSS",
       "Solidity",
       "Hardhat",
+    ],
+  },
+  // Default frontend template
+  "default-frontend": {
+    name: "Default Frontend (React + TypeScript)",
+    description: "Local default React frontend with TypeScript, Vite, and Tailwind CSS",
+    framework: "React",
+    category: "frontend",
+    source: {
+      type: "local",
+      localPath: "templates/default/frontend",
+    },
+    features: [
+      "React",
+      "TypeScript",
+      "Vite",
+      "Tailwind CSS",
+    ],
+  },
+  // Default contracts template
+  "default-contracts": {
+    name: "Default Smart Contracts (Hardhat)",
+    description: "Local default Hardhat smart contracts setup with Solidity",
+    framework: "Hardhat",
+    category: "backend",
+    source: {
+      type: "local",
+      localPath: "templates/default/contracts",
+    },
+    features: [
+      "Solidity",
+      "Hardhat",
+      "TypeScript",
     ],
   },
   // Official Parity template (updated to use remote source)

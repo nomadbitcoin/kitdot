@@ -112,20 +112,24 @@ async function gatherProjectInfo(projectName?: string, targetDir?: string): Prom
   // Template selection for non-default flow
   let template: TemplateConfig | undefined;
 
-  if (type === 'fullstack' || type === 'frontend') {
+  if (type === 'frontend' || type === 'fullstack' || type === 'backend') {
     let availableTemplates;
     let messageText;
 
     if (type === 'frontend') {
-      // Frontend-only: Show only frontend templates
+      // Frontend-only: Show all frontend templates including default
       availableTemplates = getTemplatesByCategory('frontend');
       messageText = 'Choose a frontend template:';
+    } else if (type === 'backend') {
+      // Backend-only: Show all backend templates including default contracts
+      availableTemplates = getTemplatesByCategory('backend');
+      messageText = 'Choose a smart contracts template:';
     } else if (type === 'fullstack') {
       // Full-stack: Show frontend templates, contracts will be added automatically
       availableTemplates = getTemplatesByCategory('frontend').concat(getTemplatesByCategory('fullstack'));
       messageText = 'Choose a frontend template (Hardhat contracts will be added automatically):';
     } else {
-      // Should not reach here for frontend projects, but fallback to fullstack templates
+      // Fallback to fullstack templates
       availableTemplates = getTemplatesByCategory('fullstack');
       messageText = 'Choose a template:';
     }
@@ -136,7 +140,9 @@ async function gatherProjectInfo(projectName?: string, targetDir?: string): Prom
         name: 'selectedTemplate',
         message: messageText,
         choices: availableTemplates.map(template => ({
-          name: `${template.framework} - ${template.description}`,
+          name: template.key.startsWith('default')
+            ? `⭐ ${template.framework} - ${template.description} (Default)`
+            : `${template.framework} - ${template.description}`,
           value: template.key
         }))
       };
@@ -153,6 +159,24 @@ async function gatherProjectInfo(projectName?: string, targetDir?: string): Prom
         name: availableTemplates[0].key,
         source: availableTemplates[0].source
       };
+    } else {
+      // No templates available - auto-select appropriate default
+      if (type === 'frontend') {
+        template = {
+          name: 'default-frontend',
+          source: { type: 'local', localPath: 'templates/default/frontend' }
+        };
+      } else if (type === 'backend') {
+        template = {
+          name: 'default-contracts',
+          source: { type: 'local', localPath: 'templates/default/contracts' }
+        };
+      } else {
+        template = {
+          name: 'default',
+          source: { type: 'local', localPath: 'templates/default' }
+        };
+      }
     }
   }
 
