@@ -6,7 +6,6 @@ import { ProjectConfig, ProjectType, ProjectFeatures, TemplateConfig } from '../
 import { createProjectStructure } from '../utils/project-structure.js';
 import { setupContracts } from '../utils/setup-contracts.js';
 import { setupFrontend } from '../utils/setup-frontend.js';
-import { setupDocumentation } from '../utils/setup-docs.js';
 import { getTemplatesByCategory, getTemplate } from '../templates/registry.js';
 import { displayHomeScreen } from '../utils/homeScreen.js';
 
@@ -71,8 +70,7 @@ async function gatherProjectInfo(projectName?: string, targetDir?: string): Prom
 
     const features: ProjectFeatures = {
       contracts: true,
-      frontend: true,
-      documentation: true
+      frontend: true
     };
 
     return {
@@ -164,8 +162,7 @@ async function gatherProjectInfo(projectName?: string, targetDir?: string): Prom
 
   const features: ProjectFeatures = {
     contracts: determineNeedsContracts(type, templateCategory),
-    frontend: type === 'fullstack' || type === 'frontend',
-    documentation: determineNeedsDocumentation(type, templateCategory)
+    frontend: type === 'fullstack' || type === 'frontend'
   };
 
   return {
@@ -181,29 +178,20 @@ async function gatherProjectInfo(projectName?: string, targetDir?: string): Prom
 function determineNeedsContracts(projectType: ProjectType, templateCategory?: string): boolean {
   // Backend projects always need contracts
   if (projectType === 'backend') return true;
-  
+
   // Frontend projects never need separate contracts
   if (projectType === 'frontend') return false;
-  
+
   // Fullstack projects:
   // - If template is 'fullstack', it already contains contracts - don't create separate
   // - If template is 'frontend', we need to add contracts separately
   if (projectType === 'fullstack') {
     return templateCategory !== 'fullstack';
   }
-  
+
   return false;
 }
 
-function determineNeedsDocumentation(projectType: ProjectType, _templateCategory?: string): boolean {
-  // Frontend-only projects don't need docs
-  if (projectType === 'frontend') return false;
-  
-  // For fullstack projects:
-  // - If template is 'fullstack', it might already contain docs - but we can add them anyway
-  // - If template is 'frontend', we definitely need to add docs
-  return true;
-}
 
 
 
@@ -227,11 +215,6 @@ async function createProject(config: ProjectConfig) {
       console.log(chalk.green('✅ Frontend setup complete'));
     }
 
-    if (config.features.documentation) {
-      spinner.start('Setting up documentation...');
-      await setupDocumentation(config);
-      spinner.succeed('Documentation setup complete');
-    }
 
 
     // Project creation completed - template will display its own next steps
