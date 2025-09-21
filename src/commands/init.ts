@@ -9,12 +9,12 @@ import { setupFrontend } from '../utils/setup-frontend.js';
 import { getTemplatesByCategory, getTemplate } from '../templates/registry.js';
 import { displayHomeScreen } from '../utils/homeScreen.js';
 
-export async function initCommand(projectName?: string, options?: { dir?: string }) {
+export async function initCommand(projectName?: string, options?: { dir?: string; yes?: boolean }) {
   // Display the new styled home screen
   displayHomeScreen();
 
   try {
-    const config = await gatherProjectInfo(projectName, options?.dir);
+    const config = await gatherProjectInfo(projectName, options?.dir, options?.yes);
     await createProject(config);
     // Template displays its own next steps - no additional CLI messages needed
   } catch (error) {
@@ -23,16 +23,22 @@ export async function initCommand(projectName?: string, options?: { dir?: string
   }
 }
 
-async function gatherProjectInfo(projectName?: string, targetDir?: string): Promise<ProjectConfig> {
-  // First, ask about using default template
-  const defaultTemplateQuestion = {
-    type: 'confirm' as const,
-    name: 'useDefault',
-    message: 'Install default template [Y/n]?',
-    default: true
-  };
+async function gatherProjectInfo(projectName?: string, targetDir?: string, useYes?: boolean): Promise<ProjectConfig> {
+  // If -y flag is used, skip template question and use default
+  let defaultAnswer;
+  if (useYes) {
+    defaultAnswer = { useDefault: true };
+  } else {
+    // First, ask about using default template
+    const defaultTemplateQuestion = {
+      type: 'confirm' as const,
+      name: 'useDefault',
+      message: 'Install default template [Y/n]?',
+      default: true
+    };
 
-  const defaultAnswer = await inquirer.prompt([defaultTemplateQuestion]);
+    defaultAnswer = await inquirer.prompt([defaultTemplateQuestion]);
+  }
 
   // Get project name if not provided
   let name: string;
@@ -241,7 +247,8 @@ async function createProject(config: ProjectConfig) {
 
 
 
-    // Project creation completed - template will display its own next steps
+    // Project creation completed - display contextual next steps
+    displayNextSteps(config);
   } catch (error) {
     spinner.fail('Failed to create project');
     throw error;
@@ -251,4 +258,44 @@ async function createProject(config: ProjectConfig) {
   process.nextTick(() => {
     // Allow any pending operations to complete before exit
   });
+}
+
+function displayNextSteps(config: ProjectConfig): void {
+  console.log(chalk.blue('\n📋 Next Steps'));
+  console.log(chalk.gray('Follow these steps to start developing your Polkadot Dapp:\n'));
+
+  let stepNumber = 1;
+
+  // Step 1: Navigate to project
+  console.log(chalk.blue(`${stepNumber}. Navigate to project`));
+  console.log(chalk.gray('   Enter your project directory'));
+  console.log(chalk.yellow(`   cd ${config.name}`));
+  console.log('');
+  stepNumber++;
+
+  // Step 2: Frontend development (if frontend is included)
+  if (config.features.frontend) {
+    console.log(chalk.blue(`${stepNumber}. Start frontend development`));
+    console.log(chalk.gray('   Install dependencies and start the frontend'));
+    console.log(chalk.yellow('   cd frontend && npm install && npm run dev'));
+    console.log('');
+    stepNumber++;
+  }
+
+  // Step 3: Contracts development (if contracts are included)
+  if (config.features.contracts) {
+    console.log(chalk.blue(`${stepNumber}. Start contracts development`));
+    console.log(chalk.gray('   Install dependencies and compile contracts'));
+    console.log(chalk.yellow('   cd contracts && npm install && npx hardhat compile'));
+    console.log('');
+    stepNumber++;
+  }
+
+  // Additional helpful info
+  if (config.features.frontend && config.features.contracts) {
+    console.log(chalk.cyan('💡 Tip: You can run frontend and contracts in separate terminals'));
+  }
+
+  console.log(chalk.cyan('📚 For more help: kitdot --help'));
+  console.log('');
 }
