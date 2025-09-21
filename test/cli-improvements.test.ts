@@ -70,6 +70,20 @@ describe('CLI Improvements', () => {
       expect(stdout).toContain('Installs the Rust toolchain required for Polkadot smart contract development');
       expect(stdout).toContain('This includes rustc, cargo, and wasm32 target for WebAssembly compilation');
     });
+
+    test('should show install command help as alias for init', async () => {
+      const { stdout } = await runCommand(['install', '--help']);
+
+      expect(stdout).toContain('Initialize a new Polkadot Dapp project (same as init)');
+      expect(stdout).toContain('project-name           Name of the project');
+      expect(stdout).toContain('-d, --dir <directory>  Target directory for the project');
+      expect(stdout).toContain('-y, --yes              Use default template without prompts');
+      expect(stdout).toContain('The install command is an alias for init:');
+      expect(stdout).toContain('kitdot install my-app   Create project named \'my-app\'');
+      // Should NOT contain tool installation options
+      expect(stdout).not.toContain('-r, --rust');
+      expect(stdout).not.toContain('-a, --all');
+    });
   });
 
   describe('-y Flag Functionality', () => {
@@ -120,6 +134,43 @@ describe('CLI Improvements', () => {
 
       // Should prompt for project name even with -y flag
       expect(hasPrompted).toBe(true);
+    });
+  });
+
+  describe('Install Command Functionality', () => {
+    test('should accept install command without errors', async () => {
+      // Test that install command doesn't error on argument parsing
+      // We expect it to fail at platform detection stage, which is fine for this test
+      const result = await runCommand(['install', '--help']);
+
+      expect(result.exitCode).toBe(0);
+      expect(result.stdout).toContain('Initialize kitdot SDK on this machine/project');
+    });
+
+    test('should accept project name argument in install command', async () => {
+      // Test argument parsing for project name - should not error on unknown options
+      const { stderr } = await runCommand(['install', 'test-project', '--yes'], { expectFailure: true });
+
+      // Should not complain about unknown options, but may fail during execution
+      expect(stderr).not.toContain('unknown option');
+      expect(stderr).not.toContain('error: unknown option');
+    });
+
+    test('should accept directory option in install command', async () => {
+      // Test directory option parsing
+      const { stderr } = await runCommand(['install', '--dir', './test', '--yes'], { expectFailure: true });
+
+      // Should not complain about unknown options
+      expect(stderr).not.toContain('unknown option');
+      expect(stderr).not.toContain('error: unknown option');
+    });
+
+    test('should show install command in main help', async () => {
+      const { stdout } = await runCommand(['--help']);
+
+      expect(stdout).toContain('install [options] [project-name]');
+      expect(stdout).toContain('Initialize kitdot SDK on this');
+      expect(stdout).toContain('kitdot install             Initialize SDK on new machine');
     });
   });
 
