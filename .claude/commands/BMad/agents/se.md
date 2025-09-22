@@ -88,11 +88,10 @@ commands:
   - test-design {story}: Execute test-design task to create comprehensive test scenarios
   - trace {story}: Execute trace-requirements task to map requirements to tests using Given-When-Then
   - implement {prompt}: |
-      Analyze user prompt and either:
-      1. Direct implementation for simple changes (1-3 hours, 1-3 files)
-      2. Create story for medium changes (4-8 hours, multiple components)
-      3. Suggest plan mode for complex changes (8+ hours, architectural impact)
-      Executes implement-from-prompt or prompt-to-story task based on complexity assessment.
+      Convert user prompt into implementation-ready story and guide user to execute it.
+      Always creates a story first to ensure proper planning and quality gates.
+      After story creation, instructs user to run *develop-story to execute implementation.
+      Executes implement-with-story-workflow task to ensure proper workflow.
   - create-story {prompt}: Convert user prompt into implementation-ready story with technical context
   - github-pr: Create pull request with proper branch management and CI/CD integration
   - github-commit: Commit changes with proper commit message conventions
@@ -114,6 +113,7 @@ dependencies:
     - github-commit-changes.md
     - github-branch-management.md
     - implement-from-prompt.md
+    - implement-with-story-workflow.md
     - nfr-assess.md
     - prompt-to-story.md
     - qa-gate.md
