@@ -205,8 +205,50 @@ export class TemplateLoader {
       },
     });
 
+    // Copy AGENTS.md from templates/llms to project root
+    await this.copyAgentsFile(targetPath, config);
+
     // Personalize package.json files with project name
     await this.personalizeTemplate(targetPath, config);
+  }
+
+  /**
+   * Copy AGENTS.md from templates/llms to project root
+   */
+  private async copyAgentsFile(
+    targetPath: string,
+    config: ProjectConfig
+  ): Promise<void> {
+    try {
+      const agentsSourcePath = path.join(process.cwd(), 'templates/llms/AGENTS.md');
+
+      // Determine the project root directory
+      let projectRootPath: string;
+
+      if (config.type === 'frontend' || config.type === 'backend') {
+        // For single-purpose projects, target path is already the project root
+        projectRootPath = targetPath;
+      } else {
+        // For fullstack projects, we need to go to the parent directory (project root)
+        // if we're inside a subdirectory like 'frontend' or 'contracts'
+        if (targetPath.endsWith('/frontend') || targetPath.endsWith('/contracts')) {
+          projectRootPath = path.dirname(targetPath);
+        } else {
+          // Template was placed at project root (fullstack template category)
+          projectRootPath = targetPath;
+        }
+      }
+
+      const agentsTargetPath = path.join(projectRootPath, 'AGENTS.md');
+
+      // Check if source file exists
+      if (await fs.pathExists(agentsSourcePath)) {
+        await fs.copy(agentsSourcePath, agentsTargetPath);
+      }
+    } catch (error) {
+      // Log warning but don't fail the whole process
+      console.warn(`Warning: Could not copy AGENTS.md: ${error}`);
+    }
   }
 
   /**

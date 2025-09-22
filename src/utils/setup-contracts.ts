@@ -22,6 +22,11 @@ async function setupDefaultContracts(config: ProjectConfig): Promise<void> {
     }
   });
 
+  // Copy AGENTS.md to project root for backend-only projects
+  if (config.type === 'backend') {
+    await copyAgentsFile(config.directory);
+  }
+
   // Personalize package.json with project name
   const packageJsonPath = path.join(targetDir, 'package.json');
   if (await fs.pathExists(packageJsonPath)) {
@@ -29,6 +34,21 @@ async function setupDefaultContracts(config: ProjectConfig): Promise<void> {
     // For backend-only, use project name directly; for fullstack, add -contracts suffix
     packageJson.name = config.type === 'backend' ? config.name : `${config.name}-contracts`;
     await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
+  }
+}
+
+async function copyAgentsFile(projectRootPath: string): Promise<void> {
+  try {
+    const agentsSourcePath = path.join(process.cwd(), 'templates/llms/AGENTS.md');
+    const agentsTargetPath = path.join(projectRootPath, 'AGENTS.md');
+
+    // Check if source file exists
+    if (await fs.pathExists(agentsSourcePath)) {
+      await fs.copy(agentsSourcePath, agentsTargetPath);
+    }
+  } catch (error) {
+    // Log warning but don't fail the whole process
+    console.warn(`Warning: Could not copy AGENTS.md: ${error}`);
   }
 }
 

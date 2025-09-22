@@ -296,6 +296,9 @@ function displayNextSteps(config: ProjectConfig): void {
     console.log(chalk.cyan('💡 Tip: You can run frontend and contracts in separate terminals'));
   }
 
+  // AGENTS.md tip
+  console.log(chalk.cyan('🤖 Tip: Check out AGENTS.md in your project root for comprehensive AI agent instructions'));
+
   console.log(chalk.cyan('📚 For more help: kitdot --help'));
   console.log('');
 }
