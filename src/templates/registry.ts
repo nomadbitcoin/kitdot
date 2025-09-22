@@ -9,9 +9,10 @@ import { TemplateRegistry } from "../types.js";
  */
 export const TEMPLATE_REGISTRY: TemplateRegistry = {
   // Default local template - fullstack
-  "default": {
+  default: {
     name: "Default Polkadot DApp",
-    description: "Local default template with React frontend and Hardhat contracts",
+    description:
+      "Basic React frontend and Hardhat contracts with Asset Hub network.",
     framework: "React",
     category: "fullstack",
     source: {
@@ -30,19 +31,14 @@ export const TEMPLATE_REGISTRY: TemplateRegistry = {
   // Default frontend template
   "default-frontend": {
     name: "Default Frontend (React + TypeScript)",
-    description: "Local default React frontend with TypeScript, Vite, and Tailwind CSS",
+    description: "Basic React frontend with TypeScript, Vite, and Tailwind CSS",
     framework: "React",
     category: "frontend",
     source: {
       type: "local",
       localPath: "templates/default/frontend",
     },
-    features: [
-      "React",
-      "TypeScript",
-      "Vite",
-      "Tailwind CSS",
-    ],
+    features: ["React", "TypeScript", "Vite", "Tailwind CSS"],
   },
   // Default contracts template
   "default-contracts": {
@@ -54,17 +50,13 @@ export const TEMPLATE_REGISTRY: TemplateRegistry = {
       type: "local",
       localPath: "templates/default/contracts",
     },
-    features: [
-      "Solidity",
-      "Hardhat",
-      "TypeScript",
-    ],
+    features: ["Solidity", "Hardhat", "TypeScript"],
   },
   // Official Parity template (updated to use remote source)
   "basic-polkadot-dapp": {
     name: "Basic Polkadot DApp",
     description:
-      "Official React + Solidity + Hardhat template from Parity Technologies",
+      "Official React + Solidity + Hardhat template from create-polkadot-dapp",
     framework: "React",
     category: "fullstack",
     source: {

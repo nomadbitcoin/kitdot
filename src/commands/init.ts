@@ -131,9 +131,9 @@ async function gatherProjectInfo(projectName?: string, targetDir?: string, useYe
       availableTemplates = getTemplatesByCategory('backend');
       messageText = 'Choose a smart contracts template:';
     } else if (type === 'fullstack') {
-      // Full-stack: Show frontend templates, contracts will be added automatically
-      availableTemplates = getTemplatesByCategory('frontend').concat(getTemplatesByCategory('fullstack'));
-      messageText = 'Choose a frontend template (Hardhat contracts will be added automatically):';
+      // Full-stack: Show fullstack templates first, fallback to frontend if needed
+      availableTemplates = getTemplatesByCategory('fullstack');
+      messageText = 'Choose a fullstack template:';
     } else {
       // Fallback to fullstack templates
       availableTemplates = getTemplatesByCategory('fullstack');
@@ -145,12 +145,19 @@ async function gatherProjectInfo(projectName?: string, targetDir?: string, useYe
         type: 'list' as const,
         name: 'selectedTemplate',
         message: messageText,
-        choices: availableTemplates.map(template => ({
-          name: template.key.startsWith('default')
-            ? `⭐ ${template.framework} - ${template.description} (Default)`
-            : `${template.framework} - ${template.description}`,
-          value: template.key
-        }))
+        choices: availableTemplates.map(template => {
+          // Determine if this is the default template for the current project type
+          const isDefault = (type === 'frontend' && template.key === 'default-frontend') ||
+                          (type === 'backend' && template.key === 'default-contracts') ||
+                          (type === 'fullstack' && template.key === 'default');
+
+          return {
+            name: isDefault
+              ? `⭐ ${template.framework} - ${template.description} (Default)`
+              : `${template.framework} - ${template.description}`,
+            value: template.key
+          };
+        })
       };
 
       const templateAnswer = await inquirer.prompt([templateQuestion]);
